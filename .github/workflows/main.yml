@@ -60,3 +60,4 @@
         prerelease: ${{ steps.upstream.outputs.prerelease }}
         file_glob: true
         overwrite: true
+        allow_empty: true
