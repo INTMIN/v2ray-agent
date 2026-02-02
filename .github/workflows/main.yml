@@ -59,13 +59,26 @@ jobs:
     # ---------------------------
     # 3. 同步上游代码（master 分支）
     # ---------------------------
-    - name: Sync upstream code
-      run: |
-        git remote add upstream https://github.com/mack-a/v2ray-agent.git || true
-        git fetch upstream
-        git checkout master || git checkout -b master
-        git merge upstream/master --allow-unrelated-histories -m "Sync upstream code"
-        git push origin master
+    - name: Sync upstream code (ignore .md files) 
+      run: | 
+         git remote add upstream https://github.com/mack-a/v2ray-agent.git || true 
+         git fetch upstream 
+         
+         # 切换到 main 分支 
+         git checkout master || git checkout -b master # 拉取上游代码到临时目录 
+         rm -rf upstream-tmp 
+         mkdir upstream-tmp 
+         git --work-tree=upstream-tmp checkout upstream/master -- . 
+         
+         # 删除所有 .md 文件 
+         find upstream-tmp -name "*.md" -type f -delete 
+         
+         # 将过滤后的文件同步到当前仓库 
+         cp -r upstream-tmp/* . 
+         
+         git add . 
+         git commit -m "Sync upstream code (ignore .md files)" || true 
+         git push origin master
 
     # ---------------------------
     # 4. 上传 Release（如果有 assets）
