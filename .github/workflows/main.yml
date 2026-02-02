@@ -63,8 +63,8 @@ jobs:
       run: |
         git remote add upstream https://github.com/mack-a/v2ray-agent.git || true
         git fetch upstream
-        git checkout main || git checkout -b master
-        git merge upstream/main --allow-unrelated-histories -m "Sync upstream code"
+        git checkout master || git checkout -b master
+        git merge upstream/master --allow-unrelated-histories -m "Sync upstream code"
         git push origin master
 
     # ---------------------------
