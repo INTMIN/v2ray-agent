@@ -1,0 +1,62 @@
+ name: Sync Upstream Release
+
+ on:
+  schedule:
+    - cron: "0 0 * * 1" 
+  workflow_dispatch:
+
+ jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout your repo
+      uses: actions/checkout@v4
+
+    - name: Get latest upstream release info
+      id: upstream
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const release = await github.rest.repos.getLatestRelease({
+            owner: "mack-a",
+            repo: "v2ray-agent"
+          });
+
+          core.setOutput("tag", release.data.tag_name);
+          core.setOutput("name", release.data.name);
+          core.setOutput("body", release.data.body);
+          core.setOutput("prerelease", release.data.prerelease);
+
+          // 输出 assets 数组（真正的下载链接）
+          core.setOutput("assets", JSON.stringify(release.data.assets));
+
+    - name: Download assets from API
+      run: |
+        mkdir -p upstream-release
+
+        echo '${{ steps.upstream.outputs.assets }}' > assets.json
+
+        urls=$(jq -r '.[].browser_download_url' assets.json)
+
+        echo "Found URLs:"
+        echo "$urls"
+
+        for url in $urls; do
+          echo "Downloading: $url"
+          wget -q "$url" -P upstream-release
+        done
+
+        echo "Downloaded files:"
+        ls -lh upstream-release
+
+    - name: Upload to your release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        file: upstream-release/*
+        tag: ${{ steps.upstream.outputs.tag }}
+        release_name: ${{ steps.upstream.outputs.name }}
+        body: ${{ steps.upstream.outputs.body }}
+        prerelease: ${{ steps.upstream.outputs.prerelease }}
+        file_glob: true
+        overwrite: true
