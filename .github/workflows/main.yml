@@ -1,18 +1,23 @@
- name: Sync Upstream Release
+name: Sync Upstream Release & Code
 
- on:
+on:
   schedule:
-    - cron: "0 0 * * 1" 
+    - cron: "0 0 * * 1"
   workflow_dispatch:
 
- jobs:
+jobs:
   sync:
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout your repo
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
+    # ---------------------------
+    # 1. 获取上游 Release 信息
+    # ---------------------------
     - name: Get latest upstream release info
       id: upstream
       uses: actions/github-script@v7
@@ -22,42 +27,69 @@
             owner: "mack-a",
             repo: "v2ray-agent"
           });
-
           core.setOutput("tag", release.data.tag_name);
           core.setOutput("name", release.data.name);
           core.setOutput("body", release.data.body);
           core.setOutput("prerelease", release.data.prerelease);
-
-          // 输出 assets 数组（真正的下载链接）
           core.setOutput("assets", JSON.stringify(release.data.assets));
 
-    - name: Download assets from API
+    # ---------------------------
+    # 2. 下载 Release 资产（如果有）
+    # ---------------------------
+    - name: Download assets (if any)
+      id: download
       run: |
         mkdir -p upstream-release
-
         echo '${{ steps.upstream.outputs.assets }}' > assets.json
-
         urls=$(jq -r '.[].browser_download_url' assets.json)
 
-        echo "Found URLs:"
-        echo "$urls"
+        if [ -z "$urls" ]; then
+          echo "no_assets=true" >> $GITHUB_ENV
+          echo "No assets found in upstream release."
+        else
+          echo "no_assets=false" >> $GITHUB_ENV
+          for url in $urls; do
+            echo "Downloading: $url"
+            wget -q "$url" -P upstream-release
+          done
+          echo "Downloaded files:"
+          ls -lh upstream-release
+        fi
 
-        for url in $urls; do
-          echo "Downloading: $url"
-          wget -q "$url" -P upstream-release
-        done
+    # ---------------------------
+    # 3. 同步上游代码（master 分支）
+    # ---------------------------
+    - name: Sync upstream code
+      run: |
+        git remote add upstream https://github.com/mack-a/v2ray-agent.git || true
+        git fetch upstream
+        git checkout main || git checkout -b master
+        git merge upstream/main --allow-unrelated-histories -m "Sync upstream code"
+        git push origin master
 
-        echo "Downloaded files:"
-        ls -lh upstream-release
-
-    - name: Upload to your release
+    # ---------------------------
+    # 4. 上传 Release（如果有 assets）
+    # ---------------------------
+    - name: Upload release (skip if no assets)
+      if: env.no_assets == 'false'
       uses: svenstaro/upload-release-action@v2
       with:
         file: upstream-release/*
+        file_glob: true
         tag: ${{ steps.upstream.outputs.tag }}
         release_name: ${{ steps.upstream.outputs.name }}
         body: ${{ steps.upstream.outputs.body }}
         prerelease: ${{ steps.upstream.outputs.prerelease }}
-        file_glob: true
         overwrite: true
-        allow_empty: true
+
+    # ---------------------------
+    # 5. 创建空 Release（如果没有 assets）
+    # ---------------------------
+    - name: Create release without assets
+      if: env.no_assets == 'true'
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: ${{ steps.upstream.outputs.tag }}
+        name: ${{ steps.upstream.outputs.name }}
+        body: ${{ steps.upstream.outputs.body }}
+        prerelease: ${{ steps.upstream.outputs.prerelease }}
