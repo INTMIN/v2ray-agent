@@ -42,9 +42,6 @@ vasma
 *   [脚本使用注意事项](https://www.v2ray-agent.com/archives/1679931532764)
 *   [脚本异常处理](https://www.v2ray-agent.com/archives/1684115970026)   
 
-## 社区与支持
-
-*   **反馈:** [提交 issue](https://github.com/mack-a/v2ray-agent/issues)
 
 ## 许可证
 
