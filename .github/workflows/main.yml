@@ -59,7 +59,7 @@ jobs:
     # ---------------------------
     # 3. 同步上游代码（master 分支）
     # ---------------------------
-       - name: Sync upstream code (ignore .md files)
+    - name: Sync upstream code (ignore .md files)
       run: |
          # 设置 Git 身份
          git config --global user.name "github-actions[bot]"
