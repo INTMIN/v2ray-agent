@@ -8092,18 +8092,12 @@ tuicVersionManageMenu() {
 menu() {
     cd "$HOME" || exit
     echoContent red "\n================================================ ================="
-    echoContent green "Author: mack-a"
-    echoContent green "Current version: v3.5.13"
+    echoContent green "Author: INTMIN"
+    echoContent green "Current version: v3.5.20"
     echoContent green "Github: https://github.com/INTMIN/v2ray-agent"
     echoContent green "Description: 8-in-1 coexistence script\c"
     showInstallStatus
     checkWgetShowProgress
-    echoContent red "\n============================ Promotion area================ ============"
-    echoContent red " "
-    echoContent green "For promotion, please contact TG: @mackaff\n"
-    echoContent green "VPS purchasing guide: https://www.v2ray-agent.com/archives/1679975663984"
-    echoContent green "Low-price VPS AS4837 with an annual payment of 10 US dollars: https://www.v2ray-agent.com/archives/racknerdtao-can-zheng-li-nian-fu-10mei-yuan"
-    echoContent red "================================================== ==============="
     if [[ -n "${coreInstallType}" ]]; then
         echoContent yellow "1.Reinstall"
     else
