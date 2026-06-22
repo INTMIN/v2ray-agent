@@ -59,26 +59,48 @@ jobs:
     # ---------------------------
     # 3. 同步上游代码（master 分支）
     # ---------------------------
-    - name: Sync upstream code (ignore .md files) 
-      run: | 
-         git remote add upstream https://github.com/INTMIN/v2ray-agent.git || true 
-         git fetch upstream 
-         
-         # 切换到 main 分支 
-         git checkout master || git checkout -b master # 拉取上游代码到临时目录 
-         rm -rf upstream-tmp 
-         mkdir upstream-tmp 
-         git --work-tree=upstream-tmp checkout upstream/master -- . 
-         
-         # 删除所有 .md 文件 
-         find upstream-tmp -name "*.md" -type f -delete 
-         
-         # 将过滤后的文件同步到当前仓库 
-         cp -r upstream-tmp/* . 
-         
-         git add . 
-         git commit -m "Sync upstream code (ignore .md files)" || true 
-         git push origin master
+    - name: Sync upstream code (ignore .md files)
+      run: |
+         # 设置 Git 身份（必须）
+         git config --global user.name "github-actions[bot]"
+         git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+         # 添加 upstream
+         git remote add upstream https://github.com/INTMIN/v2ray-agent.git || true
+         git fetch upstream
+
+         # 自动检测 upstream 默认分支
+         UP_BRANCH=$(git remote show upstream | sed -n '/HEAD branch/s/.*: //p')
+
+         # 如果检测不到 HEAD 分支，则 fallback 到 dev
+         if [ -z "$UP_BRANCH" ]; then
+           echo "Upstream has no HEAD branch, fallback to dev"
+           UP_BRANCH="dev"
+         fi
+
+         echo "Using upstream branch: $UP_BRANCH"
+
+         # 切换到隔离分支 upstream
+         git checkout upstream || git checkout -b upstream
+
+         # 清空当前分支内容
+         git rm -rf . || true
+
+         # 拉取上游代码到临时目录
+         rm -rf upstream-tmp
+         mkdir upstream-tmp
+         git --work-tree=upstream-tmp checkout upstream/$UP_BRANCH -- .
+
+         # 删除所有 .md 文件
+         find upstream-tmp -name "*.md" -type f -delete
+
+         # 同步到 upstream 分支
+         cp -r upstream-tmp/* .
+
+         git add .
+         git commit -m "Sync upstream code (ignore .md files)" || true
+         git push origin upstream --force
+
 
     # ---------------------------
     # 4. 上传 Release（如果有 assets）
