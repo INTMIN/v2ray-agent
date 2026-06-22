@@ -1670,7 +1670,7 @@ nginxBlog() {
         if [[ "${nginxBlogInstallStatus}" == "y" ]]; then
             rm -rf "${nginxStaticPath}"
             randomNum=$((RANDOM % 6 + 1))
-            wget -q -P "${nginxStaticPath}" https://raw.githubusercontent.com/INTMIN/v2ray-agent/master/fodder/blog/unable/html${randomNum}.zip >/dev/null
+            wget -q -P "${nginxStaticPath}" https://raw.githubusercontent.com/INTMIN/v2ray-agent/mini/fodder/blog/unable/html${randomNum}.zip >/dev/null
             unzip -o "${nginxStaticPath}html${randomNum}.zip" -d "${nginxStaticPath}" >/dev/null
             rm -f "${nginxStaticPath}html${randomNum}.zip*"
             echoContent green " ---> Added fake site successfully"
@@ -1678,7 +1678,7 @@ nginxBlog() {
     else
         randomNum=$((RANDOM % 6 + 1))
         rm -rf "${nginxStaticPath}"
-        wget -q -P "${nginxStaticPath}" https://raw.githubusercontent.com/INTMIN/v2ray-agent/master/fodder/blog/unable/html${randomNum}.zip >/dev/null
+        wget -q -P "${nginxStaticPath}" https://raw.githubusercontent.com/INTMIN/v2ray-agent/mini/fodder/blog/unable/html${randomNum}.zip >/dev/null
         unzip -o "${nginxStaticPath}html${randomNum}.zip" -d "${nginxStaticPath}" >/dev/null
         rm -f "${nginxStaticPath}html${randomNum}.zip*"
         echoContent green " ---> Added fake site successfully"
@@ -4565,7 +4565,7 @@ updateNginxBlog() {
     if [[ "${selectInstallNginxBlogType}" =~ ^[1-9]$ ]]; then
         rm -rf "${nginxStaticPath}"
 
-        wget -q -P "${nginxStaticPath}" "https://raw.githubusercontent.com/INTMIN/v2ray-agent/master/fodder/blog/unable/html${selectInstallNginxBlogType}.zip" >/dev/null
+        wget -q -P "${nginxStaticPath}" "https://raw.githubusercontent.com/INTMIN/v2ray-agent/mini/fodder/blog/unable/html${selectInstallNginxBlogType}.zip" >/dev/null
 
         unzip -o "${nginxStaticPath}html${selectInstallNginxBlogType}.zip" -d "${nginxStaticPath}" >/dev/null
         rm -f "${nginxStaticPath}html${selectInstallNginxBlogType}.zip*"
@@ -5198,9 +5198,9 @@ updateV2RayAgent() {
     echoContent skyBlue "\nProgress$1/${totalProgress}: Update v2ray-agent script"
     rm -rf /etc/v2ray-agent/install.sh
     # if wget --help | grep -q show-progress; then
-    wget -c -q "${wgetShowProgressStatus}" -P /etc/v2ray-agent/ -N --no-check-certificate "https://raw.githubusercontent.com/INTMIN/v2ray-agent/master/install.sh"
+    wget -c -q "${wgetShowProgressStatus}" -P /etc/v2ray-agent/ -N --no-check-certificate "https://raw.githubusercontent.com/INTMIN/v2ray-agent/mini/install.sh"
     #else
-    # wget -c -q -P /etc/v2ray-agent/ -N --no-check-certificate "https://raw.githubusercontent.com/INTMIN/v2ray-agent/master/install.sh"
+    # wget -c -q -P /etc/v2ray-agent/ -N --no-check-certificate "https://raw.githubusercontent.com/INTMIN/v2ray-agent/mini/install.sh"
     #fi
 
     sudo chmod 700 /etc/v2ray-agent/install.sh
@@ -5211,7 +5211,7 @@ updateV2RayAgent() {
     echoContent yellow " ---> Please manually execute [vasma] to open the script"
     echoContent green " ---> Current version: ${version}\n"
     echoContent yellow "If the update fails, please manually execute the following command\n"
-    echoContent skyBlue "wget -P /root -N --no-check-certificate https://raw.githubusercontent.com/INTMIN/v2ray-agent/master/install.sh && chmod 700 /root/install.sh && /root/install.sh"
+    echoContent skyBlue "wget -P /root -N --no-check-certificate https://raw.githubusercontent.com/INTMIN/v2ray-agent/mini/install.sh && chmod 700 /root/install.sh && /root/install.sh"
     echo
     exit 0
 }
