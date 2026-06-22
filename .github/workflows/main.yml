@@ -59,25 +59,18 @@ jobs:
     # ---------------------------
     # 3. 同步上游代码（master 分支）
     # ---------------------------
-    - name: Sync upstream code (ignore .md files)
+       - name: Sync upstream code (ignore .md files)
       run: |
-         # 设置 Git 身份（必须）
+         # 设置 Git 身份
          git config --global user.name "github-actions[bot]"
          git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-         # 添加 upstream
-         git remote add upstream https://github.com/INTMIN/v2ray-agent.git || true
+         # 添加 upstream（原版大佬仓库）
+         git remote add upstream https://github.com/mack-a/v2ray-agent.git || true
          git fetch upstream
 
-         # 自动检测 upstream 默认分支
-         UP_BRANCH=$(git remote show upstream | sed -n '/HEAD branch/s/.*: //p')
-
-         # 如果检测不到 HEAD 分支，则 fallback 到 dev
-         if [ -z "$UP_BRANCH" ]; then
-           echo "Upstream has no HEAD branch, fallback to dev"
-           UP_BRANCH="dev"
-         fi
-
+         # 直接指定同步 master（你明确要求同步 master）
+         UP_BRANCH="master"
          echo "Using upstream branch: $UP_BRANCH"
 
          # 切换到隔离分支 upstream
@@ -86,7 +79,7 @@ jobs:
          # 清空当前分支内容
          git rm -rf . || true
 
-         # 拉取上游代码到临时目录
+         # 拉取上游 master 到临时目录
          rm -rf upstream-tmp
          mkdir upstream-tmp
          git --work-tree=upstream-tmp checkout upstream/$UP_BRANCH -- .
