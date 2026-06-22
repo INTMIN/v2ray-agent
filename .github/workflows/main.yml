@@ -59,23 +59,23 @@ jobs:
     # ---------------------------
     # 3. 同步上游代码（master 分支）
     # ---------------------------
-    - name: Sync upstream code 
+    - name: Sync upstream code (ignore .md files)
       run: |
          # 设置 Git 身份
          git config --global user.name "github-actions[bot]"
          git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-         # 添加 upstream（必须是 mack-a）
+         # 确保 upstream remote 正确
          git remote remove upstream || true
          git remote add upstream https://github.com/mack-a/v2ray-agent.git
          git fetch upstream
 
-         # mack-a 仓库的默认分支就是 master
+         # 明确指定同步 master
          UP_BRANCH="master"
          echo "Using upstream branch: $UP_BRANCH"
 
-         # 切换到隔离分支 upstream
-         git checkout upstream || git checkout -b upstream
+         # 强制创建/重置本地 upstream 分支（关键！）
+         git checkout -B upstream
 
          # 清空当前分支内容
          git rm -rf . || true
@@ -94,8 +94,6 @@ jobs:
          git add .
          git commit -m "Sync upstream code (ignore .md files)" || true
          git push origin upstream --force
-
-
 
     # ---------------------------
     # 4. 上传 Release（如果有 assets）
