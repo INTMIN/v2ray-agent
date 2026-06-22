@@ -61,7 +61,7 @@ jobs:
     # ---------------------------
     - name: Sync upstream code (ignore .md files) 
       run: | 
-         git remote add upstream https://github.com/mack-a/v2ray-agent.git || true 
+         git remote add upstream https://github.com/INTMIN/v2ray-agent.git || true 
          git fetch upstream 
          
          # 切换到 main 分支 
