@@ -413,7 +413,7 @@ proxy-groups:
     proxies: null
   - name: 自动选择
     type: url-test
-    url: http://www.gstatic.com/generate_204
+    url: https://cp.cloudflare.com/generate_204
     interval: 36000
     tolerance: 50
     use:
@@ -1629,7 +1629,7 @@ promptExistingInstallAction() {
     echoContent "skyBlue" ""
     echoContent green "作者：mack-a"
     echoContent green "当前版本：v0.0.1"
-    echoContent green "Github：https://github.com/INTMIN/v2ray-agent"
+    echoContent green "Github：https://github.com/mack-a/v2ray-agent"
     echoContent green "描述：八合一docker版"
     if [[ ${hasConfig} -ne 0 && ${hasContainer} -ne 0 ]]; then
         echoContent "skyBlue" "─── 未检测到现有 Docker Reality 安装 ─────────────────────"
@@ -2049,6 +2049,7 @@ _buildVisionInbounds() {
           "serverNames": ["$(jsonEscape "${sName}")"],
           "privateKey": "$(jsonEscape "${privKey}")",
           "publicKey": "$(jsonEscape "${pubKey}")",
+          "minClientVer": "1.8.2",
           "maxTimeDiff": 70000,
           "shortIds": ["", "6ba85179e30d4fc2"]
         }
@@ -2095,6 +2096,7 @@ _buildXHTTPInbound() {
           "serverNames": ["$(jsonEscape "${sName}")"],
           "privateKey": "$(jsonEscape "${privKey}")",
           "publicKey": "$(jsonEscape "${pubKey}")",
+          "minClientVer": "1.8.2",
           "maxTimeDiff": 70000,
           "shortIds": ["", "6ba85179e30d4fc2"]
         },
