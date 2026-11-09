@@ -413,7 +413,7 @@ proxy-groups:
     proxies: null
   - name: 自动选择
     type: url-test
-    url: http://www.gstatic.com/generate_204
+    url: https://cp.cloudflare.com/generate_204
     interval: 36000
     tolerance: 50
     use:
@@ -496,7 +496,7 @@ startSubscribeContainer() {
     if [[ -z "${activePort}" ]]; then
         parsePort ""
         activePort="${resolvedPort}"
-        checkPortInUse "${activePort}"
+        checkPortInUse "${activePort}" v2ray-agent-docker-subscribe
     fi
 
     mkdir -p "${dataDir%/}/subscribe/default" "${dataDir%/}/subscribe/clashMeta" "${dataDir%/}/subscribe/clashMetaProfiles"
@@ -990,38 +990,25 @@ checkPortInUse() {
     if ! command -v lsof >/dev/null 2>&1; then
         return 0
     fi
-    # 收集监听该端口的 PID
-    local listenPids
+    local containerName="${2:-v2ray-agent-docker}"
+    local listenPids mappedPorts
     listenPids=$(lsof -i "tcp:${p}" -sTCP:LISTEN -t 2>/dev/null || true)
     [[ -z "${listenPids}" ]] && return 0
 
-    # 检查现有 v2ray-agent-docker 容器是否占用该端口。
-    # 若容器存在，其发布端口由 docker-proxy 管理。
-    # 若所有监听 PID 均属于该容器的 docker-proxy 进程，则允许使用该端口。
-    local containerExists=0
-    if docker ps -a --filter "name=^/v2ray-agent-docker$" --format '{{.Names}}' 2>/dev/null |
-        grep -q "^v2ray-agent-docker$" || docker ps -a --filter "name=^/v2ray-agent-docker-subscribe$" --format '{{.Names}}' 2>/dev/null | grep -q "^v2ray-agent-docker-subscribe$"; then
-        containerExists=1
-    fi
-
-    if [[ "${containerExists}" == "1" ]]; then
-        # 验证所有监听 PID 是否均为 docker-proxy 进程（Docker 为发布端口生成的转发器）。
-        # 若有任何 PID 不是 docker-proxy，则该端口被无关进程占用 — 这是真正的冲突。
-        local unrelatedPids=0
-        local pid
+    # Only accept the published port of the container that will be replaced.
+    mappedPorts=$(docker inspect --format '{{range $port, $bindings := .NetworkSettings.Ports}}{{range $bindings}}{{println .HostPort}}{{end}}{{end}}' "${containerName}" 2>/dev/null || true)
+    if printf '%s\n' "${mappedPorts}" | grep -qx "${p}"; then
+        local unrelatedPids=0 pid comm
         while IFS= read -r pid; do
-            [[ -z "${pid}" ]] && continue
-            local comm
+            [[ -n "${pid}" ]] || continue
             comm=$(cat "/proc/${pid}/comm" 2>/dev/null || ps -p "${pid}" -o comm= 2>/dev/null || true)
-            if [[ "${comm}" != *"docker-proxy"* ]]; then
+            if [[ "${comm}" != *docker-proxy* ]]; then
                 unrelatedPids=1
                 break
             fi
         done <<<"${listenPids}"
-
-        if [[ "${unrelatedPids}" == "0" ]]; then
-            # 端口仅由 v2ray-agent-docker 的 docker-proxy 占用 — 可以继续
-            echoContent "yellow" "端口 ${p} 由现有 v2ray-agent-docker 容器占用（将被替换）"
+        if [[ "${unrelatedPids}" == 0 ]]; then
+            echoContent "yellow" "端口 ${p} 由 ${containerName} 发布（将被替换）"
             return 0
         fi
     fi
@@ -1629,7 +1616,7 @@ promptExistingInstallAction() {
     echoContent "skyBlue" ""
     echoContent green "作者：mack-a"
     echoContent green "当前版本：v0.0.1"
-    echoContent green "Github：https://github.com/INTMIN/v2ray-agent"
+    echoContent green "Github：https://github.com/mack-a/v2ray-agent"
     echoContent green "描述：八合一docker版"
     if [[ ${hasConfig} -ne 0 && ${hasContainer} -ne 0 ]]; then
         echoContent "skyBlue" "─── 未检测到现有 Docker Reality 安装 ─────────────────────"
@@ -1950,7 +1937,7 @@ resolveValues() {
         echoContent "red" "订阅端口（${resolvedSubscribePort}）与 XHTTP 端口相同，请使用不同端口"
         exit 1
     fi
-    checkPortInUse "${resolvedSubscribePort}"
+    checkPortInUse "${resolvedSubscribePort}" v2ray-agent-docker-subscribe
 
     # --- 服务器名称 ---
     parseServerName "${serverName}"
@@ -2049,6 +2036,7 @@ _buildVisionInbounds() {
           "serverNames": ["$(jsonEscape "${sName}")"],
           "privateKey": "$(jsonEscape "${privKey}")",
           "publicKey": "$(jsonEscape "${pubKey}")",
+          "minClientVer": "1.8.2",
           "maxTimeDiff": 70000,
           "shortIds": ["", "6ba85179e30d4fc2"]
         }
@@ -2095,6 +2083,7 @@ _buildXHTTPInbound() {
           "serverNames": ["$(jsonEscape "${sName}")"],
           "privateKey": "$(jsonEscape "${privKey}")",
           "publicKey": "$(jsonEscape "${pubKey}")",
+          "minClientVer": "1.8.2",
           "maxTimeDiff": 70000,
           "shortIds": ["", "6ba85179e30d4fc2"]
         },
